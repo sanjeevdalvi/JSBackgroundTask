@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mocha Tests</title>
+    <link rel="stylesheet" href="mocha.css">
+
+	<!--script src="require.js"></script>
+	<script >
+			require("fs");
+	</script>
+	<script src="jsdom.js"></script>
+	<script src="setup.js"></script-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>  
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script src="mocha.js"></script>
+    <script src="chai.js"></script>
+	
+	<script src="../BackgroundTaskMgr.js"></script>
+    <script>
+	mocha.setup('bdd');
+	var expect = chai.expect;
+
+
+	var taskMgr = new BackgroundTaskMgr();
+var task = new BackgroundTask(testTask);	
+task.setInterval(300);
+//task.setPeriodic(3000);
+taskMgr.addTask(task);
+
+
+describe('BackgroundTaskMgr invoke ', function(){
+
+	  it('should be initialized and status should be `not started` ', function() {	  
+		  expect(taskMgr.state).to.be.a('string');
+		  expect(taskMgr.state).to.equal('not started');
+		 });
+	 	
+});
+
+describe('BackgroundTaskMgr start and run  ', function(){
+
+	  before(function() {taskMgr.start(testTask); });
+	  it('status should be `running` ', function(done) {	  
+		  expect(taskMgr.state).to.be.a('string');
+		  expect(taskMgr.state).to.equal('running');
+		  done();
+		 });
+	 	
+});
+
+describe('BackgroundTaskMgr stop  ', function(){
+
+	  before(function() {taskMgr.stop(); });
+	  it('status should be `stopped` ', function(done) {	  
+		  expect(taskMgr.state).to.be.a('string');
+		  expect(taskMgr.state).to.equal('stopped');
+		  done();
+		 });
+	 	
+});
+
+function testTask()
+{
+	
+	describe('Task module ', function(){
+
+		it('should be run', function(done) {	  
+			expect(task.getId()).to.be.a('number');
+			done();
+			});
+		
+		
+	});
+
+}
+	
+	</script>
+
+    <!-- load code you want to test here -->
+
+    <!-- load your test files here -->
+		
+	<!--script type="text/babel" src="http://localhost:8080/trip/jsbuild/test/components/TopNavigation.js"></script-->
+	
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>
