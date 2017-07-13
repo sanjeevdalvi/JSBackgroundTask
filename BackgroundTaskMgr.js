@@ -1,14 +1,17 @@
 
-const MAX_TRIES = 10;
+
 
 function BackgroundTaskMgr()
 {
+	const MAX_TRIES = 10;
+	if ( typeof DEBUG !== "number" ) DEBUG=0;
+	
 	this.tasks= [];
 	this.state="not started";
 	this.addTask = function(task){
 		
 		this.tasks.push(task);
-		console.log("A task was added ");
+		if (DEBUG) console.log("A task with function "+task.name +" was added ");
 	}
 	
 	this.start = function(){
@@ -18,7 +21,7 @@ function BackgroundTaskMgr()
 			this.tries++;
 		if (this.tries > MAX_TRIES ) 
 		{
-				console.log("Task mgr not started !, after "+this.tries+" tries. ");
+				if (DEBUG) console.log("Task mgr not started !, after "+this.tries+" tries. ");
 				return;
 		}	
 		if (arguments.length > 0 )
@@ -26,13 +29,13 @@ function BackgroundTaskMgr()
 		if( document.readyState == "complete" )
 			{
 				this.state = "started";
-				console.log("Task mgr started .., after "+this.tries+" tries. ");
-				this.run();
+				if (DEBUG) console.log("Task mgr started, after "+this.tries+" tries. "+ this.getTime());
 				if ( typeof this.startCallback  == "function" ) this.startCallback();
+				this.run();
 				return;
 			}
 			var self=this;
-			var id = setTimeout(function(){	clearTimeout(id); self.start(); }, 2000);
+			var id = setTimeout((function(){	clearTimeout(id); this.start(); }).bind(this), 2000);
 			
 		
 	}
@@ -43,25 +46,58 @@ function BackgroundTaskMgr()
 		for(var i=0; i < this.tasks.length; i++ )
 		{
 			if(this.state == "stopped" ) return;
+			
+			
 			var task = this.tasks[i];
-			var id = setInterval(function(){	
-					if(!task.isPeriodic() ) clearTimeout(id); 
-						task.callback(); 
-					console.log("Task called....");
-						},task.getInterval());
+			var self=this;
+			var id = setInterval((function(task){
+					return (function(){
+								if(!task.isPeriodic() ) clearTimeout(task.getId()); 
+									task.run(); 
+								if (DEBUG) console.log("Task called....@ " + self.getTime());
+								self.checkForCompletion();
+					});
+						})(task),task.getInterval());
+			
 			task.setId(id);	
 			
 		}	
-		console.log("Task mgr run completed .....");
+		if (DEBUG) console.log("Task mgr run completed ....."+ this.getTime());
+		//this.state = "completed";
 	}
 	
 	
 	this.stop = function(){
+		for(var i=0; i < this.tasks.length; i++ )
+			if (this.tasks[i].getStatus() !== 'completed') clearTimeout(this.tasks[i].getId());
+			
+		
 		this.state = "stopped";
-		console.log("Task mgr stopped.....");
+		if (DEBUG) console.log("Task mgr stopped.....");
+	}
+	this.checkForCompletion = function(){
+		
+		for(var i=0; i < this.tasks.length; i++ )
+			if (this.tasks[i].getStatus() !== 'completed') return false;
+		
+		this.state = "completed";
+		if (DEBUG) console.log("Task mgr has completed.....");
+		return true;
 	}
 
 	//this.start();
+	this.getTime = function () {
+			  var today = new Date();
+			  var h = today.getHours();
+			  var m = today.getMinutes();
+			  var s = today.getSeconds();
+			  // add a zero in front of numbers<10
+			  //m = checkTime(m);
+			  //s = checkTime(s);
+			  var time  = h + ":" + m + ":" + s;
+			  return time;
+			};
+
 }
 
 
@@ -72,12 +108,24 @@ function BackgroundTask(callback)
 	var nRun=1;
 	var _interval=1000;
 	
-	this.callback=callback;
+	var _callback=callback;
+	var _status = "pending";
 	
+	if ( callback.hasOwnProperty("name") && ( callback.name.trim() != "") )
+		this.name=callback.name;
+	else
+		this.name="<no name>";
 	this.setPeriodic = function(interval)
 	{
 		_periodic = true;
 		_interval = interval;
+	}
+	this.run = function()
+	{
+		_status = "running";
+		_callback();
+		if (!_periodic) _status = "completed";
+		
 	}
 	
 	this.setInterval = function(interval)
@@ -86,7 +134,16 @@ function BackgroundTask(callback)
 	this.isPeriodic = function() { return _periodic; }
 	this.getInterval = function() { return _interval;}
 	
-	this.getId = function() { return this.id; }
-	this.setId =  function(id) { this.id =id; }
+	this.getStatus = function() { return _status; }
 	
+
+	
+	this.getId = function() { return this.id; }
+	this.setId =  function(id) { this.id =id; }	
+}
+
+
+module.exports = {
+    BackgroundTaskMgr: BackgroundTaskMgr,
+    BackgroundTask: BackgroundTask
 }
