@@ -22,61 +22,9 @@
 	mocha.setup('bdd');
 	var expect = chai.expect;
 
-
-	var taskMgr = new BackgroundTaskMgr();
-var task = new BackgroundTask(testTask);	
-task.setInterval(300);
-//task.setPeriodic(3000);
-taskMgr.addTask(task);
-
-
-describe('BackgroundTaskMgr invoke ', function(){
-
-	  it('should be initialized and status should be `not started` ', function() {	  
-		  expect(taskMgr.state).to.be.a('string');
-		  expect(taskMgr.state).to.equal('not started');
-		 });
-	 	
-});
-
-describe('BackgroundTaskMgr start and run  ', function(){
-
-	  before(function() {taskMgr.start(testTask); });
-	  it('status should be `running` ', function(done) {	  
-		  expect(taskMgr.state).to.be.a('string');
-		  expect(taskMgr.state).to.equal('running');
-		  done();
-		 });
-	 	
-});
-
-describe('BackgroundTaskMgr stop  ', function(){
-
-	  before(function() {taskMgr.stop(); });
-	  it('status should be `stopped` ', function(done) {	  
-		  expect(taskMgr.state).to.be.a('string');
-		  expect(taskMgr.state).to.equal('stopped');
-		  done();
-		 });
-	 	
-});
-
-function testTask()
-{
-	
-	describe('Task module ', function(){
-
-		it('should be run', function(done) {	  
-			expect(task.getId()).to.be.a('number');
-			done();
-			});
-		
-		
-	});
-
-}
 	
 	</script>
+<script src="test1.js"></script>
 
     <!-- load code you want to test here -->
 
